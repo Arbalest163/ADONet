@@ -45,9 +45,9 @@ namespace ADonet.Services
 
             var table = CreateFullTable();
 
-            for (int i = 0; i < list.Count; i++)
+            foreach (var item in list)
             {
-                table.Rows.Add(list[i].Name, list[i].Type, list[i].Color, list[i].Calories);
+                table.Rows.Add(item.Name, item.Type, item.Color, item.Calories);
             }
 
             dataGridView.DataSource = table;
@@ -113,9 +113,9 @@ namespace ADonet.Services
 
             var table = CreateFullTable();
 
-            for (int i = 0; i < list.Count; i++)
+            foreach (var item in list)
             {
-                table.Rows.Add(list[i].Name, list[i].Type, list[i].Color, list[i].Calories);
+                table.Rows.Add(item.Name, item.Type, item.Color, item.Calories);
             }
 
             dataGridView.DataSource = table;
@@ -141,29 +141,24 @@ namespace ADonet.Services
             }
         }
 
-        public void ShowCountVegetablesOrFruits(ComboBox comboBox, Types types)
+        public void ShowCountVegetablesOrFruits(ComboBox comboBox, Types type)
         {
-            string names = null;
-
-            switch (types)
+            string names = type switch
             {
-                case Types.Fruit:
-                    names = "фруктов";
-                    break;
-                case Types.Vegetable:
-                    names = "овощей";
-                    break;
-            }
+                Types.Fruit => "фруктов",
+                Types.Vegetable => "овощей",
+                _ => ""
+            };
 
-            if (comboBox.SelectedItem == null || comboBox.SelectedItem.ToString() == "All Colors")
+            if (comboBox.SelectedItem is Colors)
             {
-                var count = _dbContext.Items.Count(c => c.Type == types);
-                MessageBox.Show($"Количество {names} всех цветов = " + count);
+                var count = _dbContext.Items.Count(c => c.Type == type && c.Color == (Colors)comboBox.SelectedItem);
+                MessageBox.Show($"Количество {names} заданого цвета = " + count);
             }
             else
             {
-                var count = _dbContext.Items.Count(c => c.Type == types && c.Color == (Colors)comboBox.SelectedItem);
-                MessageBox.Show($"Количество {names} заданого цвета = " + count);
+                var count = _dbContext.Items.Count(c => c.Type == type);
+                MessageBox.Show($"Количество {names} всех цветов = " + count);
             }
         }
 
@@ -171,17 +166,12 @@ namespace ADonet.Services
         {
             var cal = TryConvertToInt(textBox);
 
-            var list = new List<Item>();
-
-            switch (moreOrLess)
+            var list = moreOrLess switch
             {
-                case MoreOrLess.More:
-                    list = _dbContext.Items.Where(c => c.Calories >= cal).ToList();
-                    break;
-                case MoreOrLess.Less:
-                    list = _dbContext.Items.Where(c => c.Calories <= cal).ToList();
-                    break;
-            }
+                MoreOrLess.More => _dbContext.Items.Where(c => c.Calories >= cal).ToList(),
+                MoreOrLess.Less => _dbContext.Items.Where(c => c.Calories <= cal).ToList(),
+                _ => new()
+            };
 
             var table = CreateFullTable();
 
